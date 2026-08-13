@@ -1,0 +1,127 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  COLABORADOR
+}
+
+model User {
+  id           String   @id @default(cuid())
+  nome         String
+  email        String   @unique
+  senhaHash    String
+  role         Role     @default(COLABORADOR)
+  ativo        Boolean  @default(true)
+  colaborador  Colaborador? @relation(fields: [colaboradorId], references: [id])
+  colaboradorId String?  @unique
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+}
+
+model Cliente {
+  id           String   @id @default(cuid())
+  nome         String
+  cnpj         String?
+  endereco     String?
+  sindico      String?
+  telefone     String?
+  email        String?
+  observacoes  String?
+  ativo        Boolean  @default(true)
+  contratos    Contrato[]
+  ordens       OrdemServico[]
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+}
+
+model Contrato {
+  id             String   @id @default(cuid())
+  cliente        Cliente  @relation(fields: [clienteId], references: [id])
+  clienteId      String
+  descricao      String
+  escopo         String?
+  valorMensal    Float    @default(0)
+  diaVencimento  Int      @default(10)
+  dataInicio     DateTime @default(now())
+  dataFim        DateTime?
+  status         String   @default("ATIVO") // ATIVO | ENCERRADO | SUSPENSO
+  ordens         OrdemServico[]
+  recebimentos   Recebimento[]
+  criadoEm       DateTime @default(now())
+  atualizadoEm   DateTime @updatedAt
+}
+
+model Colaborador {
+  id            String   @id @default(cuid())
+  nome          String
+  funcao        String?  // especialidade: elétrica, hidráulica, pintura...
+  telefone      String?
+  email         String?
+  tipo          String   @default("PRESTADOR") // CLT | PRESTADOR
+  valorPadrao   Float    @default(0) // diária ou hora
+  ativo         Boolean  @default(true)
+  ordens        OrdemServico[]
+  pagamentos    PagamentoColaborador[]
+  usuario       User?
+  criadoEm      DateTime @default(now())
+  atualizadoEm  DateTime @updatedAt
+}
+
+model OrdemServico {
+  id             String   @id @default(cuid())
+  numero         Int      @unique
+  cliente        Cliente  @relation(fields: [clienteId], references: [id])
+  clienteId      String
+  contrato       Contrato? @relation(fields: [contratoId], references: [id])
+  contratoId     String?
+  colaborador    Colaborador? @relation(fields: [colaboradorId], references: [id])
+  colaboradorId  String?
+  tipo           String   @default("CORRETIVA") // PREVENTIVA | CORRETIVA
+  categoria      String?  // ELETRICA | HIDRAULICA | PINTURA | LIMPEZA | OUTRO
+  titulo         String
+  descricao      String?
+  prioridade     String   @default("MEDIA") // BAIXA | MEDIA | ALTA | URGENTE
+  status         String   @default("ABERTA") // ABERTA | AGENDADA | EM_ANDAMENTO | CONCLUIDA | CANCELADA
+  custo          Float    @default(0)
+  dataAbertura   DateTime @default(now())
+  dataAgendada   DateTime?
+  dataConclusao  DateTime?
+  observacoes    String?
+  pagamentos     PagamentoColaborador[]
+  criadoEm       DateTime @default(now())
+  atualizadoEm   DateTime @updatedAt
+}
+
+model PagamentoColaborador {
+  id             String   @id @default(cuid())
+  colaborador    Colaborador @relation(fields: [colaboradorId], references: [id])
+  colaboradorId  String
+  ordem          OrdemServico? @relation(fields: [ordemId], references: [id])
+  ordemId        String?
+  descricao      String
+  valor          Float    @default(0)
+  data           DateTime @default(now())
+  status         String   @default("PENDENTE") // PENDENTE | PAGO
+  criadoEm       DateTime @default(now())
+  atualizadoEm   DateTime @updatedAt
+}
+
+model Recebimento {
+  id           String   @id @default(cuid())
+  contrato     Contrato @relation(fields: [contratoId], references: [id])
+  contratoId   String
+  competencia  String   // ex: "2026-08"
+  valor        Float    @default(0)
+  vencimento   DateTime
+  status       String   @default("PENDENTE") // PENDENTE | PAGO | ATRASADO
+  pagoEm       DateTime?
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+}
