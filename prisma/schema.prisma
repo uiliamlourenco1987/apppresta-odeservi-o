@@ -37,6 +37,22 @@ model Cliente {
   ativo        Boolean  @default(true)
   contratos    Contrato[]
   ordens       OrdemServico[]
+  orcamentos   Orcamento[]
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+}
+
+model Orcamento {
+  id           String   @id @default(cuid())
+  numero       Int      @unique
+  cliente      Cliente  @relation(fields: [clienteId], references: [id])
+  clienteId    String
+  titulo       String
+  descricao    String?
+  valor        Float    @default(0)
+  status       String   @default("SOLICITADO") // SOLICITADO | ENVIADO | APROVADO | REPROVADO
+  validade     DateTime?
+  observacoes  String?
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
 }
@@ -95,8 +111,21 @@ model OrdemServico {
   dataConclusao  DateTime?
   observacoes    String?
   pagamentos     PagamentoColaborador[]
+  fotos          FotoOS[]
   criadoEm       DateTime @default(now())
   atualizadoEm   DateTime @updatedAt
+}
+
+model FotoOS {
+  id         String   @id @default(cuid())
+  ordem      OrdemServico @relation(fields: [ordemId], references: [id], onDelete: Cascade)
+  ordemId    String
+  nome       String
+  // Imagem armazenada como data URL (base64). Em produção, migrar para
+  // um serviço de arquivos (S3 / Supabase Storage) guardando apenas a URL.
+  dados      String
+  legenda    String?
+  criadoEm   DateTime @default(now())
 }
 
 model PagamentoColaborador {

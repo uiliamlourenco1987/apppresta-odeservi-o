@@ -179,6 +179,34 @@ async function main() {
     },
   });
 
+  // Orçamentos
+  await prisma.orcamento.createMany({
+    data: [
+      {
+        numero: 1,
+        clienteId: alpha.id,
+        titulo: "Reforma da fachada",
+        descricao: "Pintura completa e reparos no reboco.",
+        valor: 8500,
+        status: "ENVIADO",
+      },
+      {
+        numero: 2,
+        clienteId: beta.id,
+        titulo: "Modernização do quadro elétrico",
+        valor: 4200,
+        status: "SOLICITADO",
+      },
+      {
+        numero: 3,
+        clienteId: alpha.id,
+        titulo: "Troca de bomba d'água",
+        valor: 2300,
+        status: "APROVADO",
+      },
+    ],
+  });
+
   console.log("✅ Concluído!");
   console.log("   Admin:       admin@empresa.com / 123456");
   console.log("   Colaborador: joao@empresa.com / 123456");

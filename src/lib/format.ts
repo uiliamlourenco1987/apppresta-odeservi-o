@@ -105,6 +105,44 @@ export const CATEGORIA_LABEL: Record<string, string> = {
   OUTRO: "Outro",
 };
 
+// Fluxo dos orçamentos (colunas do quadro)
+export const STATUS_ORCAMENTO: Record<
+  string,
+  { label: string; cor: string; corColuna: string; corBarra: string }
+> = {
+  SOLICITADO: {
+    label: "Solicitado",
+    cor: "bg-slate-100 text-slate-700",
+    corColuna: "bg-slate-50 border-slate-200",
+    corBarra: "bg-slate-400",
+  },
+  ENVIADO: {
+    label: "Enviado",
+    cor: "bg-blue-100 text-blue-800",
+    corColuna: "bg-blue-50 border-blue-200",
+    corBarra: "bg-blue-500",
+  },
+  APROVADO: {
+    label: "Aprovado",
+    cor: "bg-green-100 text-green-800",
+    corColuna: "bg-green-50 border-green-200",
+    corBarra: "bg-green-500",
+  },
+  REPROVADO: {
+    label: "Reprovado",
+    cor: "bg-red-100 text-red-800",
+    corColuna: "bg-red-50 border-red-200",
+    corBarra: "bg-red-500",
+  },
+};
+
+export const ORCAMENTO_COLUNAS = [
+  "SOLICITADO",
+  "ENVIADO",
+  "APROVADO",
+  "REPROVADO",
+] as const;
+
 export const STATUS_CONTRATO: Record<string, string> = {
   ATIVO: "Ativo",
   ENCERRADO: "Encerrado",

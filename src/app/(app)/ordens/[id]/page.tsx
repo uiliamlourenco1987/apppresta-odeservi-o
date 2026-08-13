@@ -5,6 +5,7 @@ import { PageHeader, Badge } from "@/components/ui";
 import DeleteButton from "@/components/delete-button";
 import { STATUS_OS } from "@/lib/format";
 import OrdemForm from "../ordem-form";
+import Fotos from "../fotos";
 import { mudarStatusOrdem, excluirOrdem } from "../actions";
 
 export default async function EditarOrdemPage({
@@ -17,7 +18,7 @@ export default async function EditarOrdemPage({
 
   const ordem = await prisma.ordemServico.findUnique({
     where: { id },
-    include: { cliente: true },
+    include: { cliente: true, fotos: { orderBy: { criadoEm: "desc" } } },
   });
   if (!ordem) notFound();
 
@@ -90,6 +91,8 @@ export default async function EditarOrdemPage({
           </span>
         </div>
       </div>
+
+      <Fotos ordemId={ordem.id} fotos={ordem.fotos} />
 
       <OrdemForm
         ordem={ordem}
