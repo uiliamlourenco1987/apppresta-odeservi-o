@@ -1,7 +1,9 @@
 import Link from "next/link";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { exigirAdmin } from "@/lib/auth";
 import { PageHeader, BotaoLink, Badge, EmptyState } from "@/components/ui";
+import FilterBar from "@/components/filter-bar";
 import DeleteButton from "@/components/delete-button";
 import { formatarMoeda, formatarData, STATUS_CONTRATO } from "@/lib/format";
 import { excluirContrato } from "./actions";
@@ -12,12 +14,35 @@ const CORES_STATUS: Record<string, string> = {
   ENCERRADO: "bg-gray-200 text-gray-600",
 };
 
-export default async function ContratosPage() {
+export default async function ContratosPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; status?: string; cliente?: string }>;
+}) {
   await exigirAdmin();
-  const contratos = await prisma.contrato.findMany({
-    orderBy: { criadoEm: "desc" },
-    include: { cliente: true, _count: { select: { ordens: true } } },
-  });
+  const sp = await searchParams;
+
+  const where: Prisma.ContratoWhereInput = {};
+  if (sp.q) {
+    where.OR = [
+      { descricao: { contains: sp.q } },
+      { cliente: { nome: { contains: sp.q } } },
+    ];
+  }
+  if (sp.status) where.status = sp.status;
+  if (sp.cliente) where.clienteId = sp.cliente;
+
+  const [contratos, clientes] = await Promise.all([
+    prisma.contrato.findMany({
+      where,
+      orderBy: { criadoEm: "desc" },
+      include: { cliente: true, _count: { select: { ordens: true } } },
+    }),
+    prisma.cliente.findMany({
+      orderBy: { nome: "asc" },
+      select: { id: true, nome: true },
+    }),
+  ]);
 
   const totalMensal = contratos
     .filter((c) => c.status === "ATIVO")
@@ -31,10 +56,36 @@ export default async function ContratosPage() {
         acao={<BotaoLink href="/contratos/novo">+ Novo contrato</BotaoLink>}
       />
 
+      <FilterBar
+        action="/contratos"
+        temFiltroAtivo={!!(sp.q || sp.status || sp.cliente)}
+        campos={[
+          { tipo: "busca", name: "q", placeholder: "Buscar por cliente ou descrição", valor: sp.q },
+          {
+            tipo: "select",
+            name: "cliente",
+            valor: sp.cliente,
+            placeholderOpcao: "Todos os clientes",
+            opcoes: clientes.map((c) => ({ valor: c.id, label: c.nome })),
+          },
+          {
+            tipo: "select",
+            name: "status",
+            valor: sp.status,
+            placeholderOpcao: "Todos os status",
+            opcoes: [
+              { valor: "ATIVO", label: "Ativo" },
+              { valor: "SUSPENSO", label: "Suspenso" },
+              { valor: "ENCERRADO", label: "Encerrado" },
+            ],
+          },
+        ]}
+      />
+
       {contratos.length === 0 ? (
         <EmptyState
-          titulo="Nenhum contrato cadastrado"
-          descricao="Cadastre os contratos firmados com cada condomínio."
+          titulo="Nenhum contrato encontrado"
+          descricao="Ajuste os filtros ou cadastre um novo contrato."
           acao={<BotaoLink href="/contratos/novo">+ Novo contrato</BotaoLink>}
         />
       ) : (

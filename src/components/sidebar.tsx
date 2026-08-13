@@ -9,6 +9,7 @@ type Item = { href: string; label: string; icon: string; adminOnly?: boolean };
 
 const ITENS: Item[] = [
   { href: "/dashboard", label: "Painel", icon: "◧" },
+  { href: "/gerencial", label: "Painel Gerencial", icon: "◑", adminOnly: true },
   { href: "/kanban", label: "Quadro Kanban", icon: "▦" },
   { href: "/ordens", label: "Ordens de Serviço", icon: "⚒" },
   { href: "/clientes", label: "Clientes", icon: "◲", adminOnly: true },

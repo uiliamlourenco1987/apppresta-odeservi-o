@@ -13,7 +13,13 @@ import type { Prisma } from "@prisma/client";
 export default async function OrdensPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; cliente?: string; colaborador?: string }>;
+  searchParams: Promise<{
+    status?: string;
+    cliente?: string;
+    colaborador?: string;
+    prioridade?: string;
+    q?: string;
+  }>;
 }) {
   const sessao = await exigirSessao();
   const sp = await searchParams;
@@ -24,6 +30,13 @@ export default async function OrdensPage({
   if (sp.status) where.status = sp.status;
   if (sp.cliente) where.clienteId = sp.cliente;
   if (ehAdmin && sp.colaborador) where.colaboradorId = sp.colaborador;
+  if (sp.prioridade) where.prioridade = sp.prioridade;
+  if (sp.q) {
+    where.OR = [
+      { titulo: { contains: sp.q } },
+      { descricao: { contains: sp.q } },
+    ];
+  }
 
   const [ordens, clientes, colaboradores] = await Promise.all([
     prisma.ordemServico.findMany({
@@ -50,6 +63,8 @@ export default async function OrdensPage({
     if (sp.status) p.set("status", sp.status);
     if (sp.cliente) p.set("cliente", sp.cliente);
     if (sp.colaborador) p.set("colaborador", sp.colaborador);
+    if (sp.prioridade) p.set("prioridade", sp.prioridade);
+    if (sp.q) p.set("q", sp.q);
     for (const [k, v] of Object.entries(extra)) {
       if (v) p.set(k, v);
       else p.delete(k);
@@ -85,10 +100,29 @@ export default async function OrdensPage({
         ))}
       </div>
 
-      {/* Filtros por cliente/colaborador (admin) */}
-      {ehAdmin && (clientes.length > 0 || colaboradores.length > 0) && (
-        <form className="mb-4 flex flex-wrap gap-3" method="get">
-          {sp.status && <input type="hidden" name="status" value={sp.status} />}
+      {/* Busca e filtros adicionais */}
+      <form className="card mb-4 flex flex-wrap items-center gap-3 p-3" method="get">
+        {sp.status && <input type="hidden" name="status" value={sp.status} />}
+        <input
+          type="search"
+          name="q"
+          defaultValue={sp.q ?? ""}
+          placeholder="Buscar por título ou descrição"
+          className="input max-w-xs flex-1"
+        />
+        <select
+          name="prioridade"
+          defaultValue={sp.prioridade ?? ""}
+          className="input max-w-xs"
+        >
+          <option value="">Todas as prioridades</option>
+          {Object.entries(PRIORIDADE_OS).map(([k, v]) => (
+            <option key={k} value={k}>
+              {v.label}
+            </option>
+          ))}
+        </select>
+        {ehAdmin && (
           <select name="cliente" defaultValue={sp.cliente ?? ""} className="input max-w-xs">
             <option value="">Todos os clientes</option>
             {clientes.map((c) => (
@@ -97,6 +131,8 @@ export default async function OrdensPage({
               </option>
             ))}
           </select>
+        )}
+        {ehAdmin && (
           <select
             name="colaborador"
             defaultValue={sp.colaborador ?? ""}
@@ -109,11 +145,19 @@ export default async function OrdensPage({
               </option>
             ))}
           </select>
-          <button className="btn-secondary" type="submit">
-            Filtrar
-          </button>
+        )}
+        <button className="btn-primary" type="submit">
+          Filtrar
+        </button>
+        {(sp.q || sp.prioridade || sp.cliente || sp.colaborador) && (
+          <Link
+            href={filtroBase({ q: "", prioridade: "", cliente: "", colaborador: "" })}
+            className="text-sm font-medium text-gray-500 hover:underline"
+          >
+            Limpar
+          </Link>
+        )}
         </form>
-      )}
 
       {ordens.length === 0 ? (
         <EmptyState

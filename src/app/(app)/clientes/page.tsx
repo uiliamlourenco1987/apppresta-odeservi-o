@@ -1,13 +1,33 @@
 import Link from "next/link";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { exigirAdmin } from "@/lib/auth";
 import { PageHeader, BotaoLink, Badge, EmptyState } from "@/components/ui";
+import FilterBar from "@/components/filter-bar";
 import DeleteButton from "@/components/delete-button";
 import { excluirCliente } from "./actions";
 
-export default async function ClientesPage() {
+export default async function ClientesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; status?: string }>;
+}) {
   await exigirAdmin();
+  const sp = await searchParams;
+
+  const where: Prisma.ClienteWhereInput = {};
+  if (sp.q) {
+    where.OR = [
+      { nome: { contains: sp.q } },
+      { sindico: { contains: sp.q } },
+      { cnpj: { contains: sp.q } },
+    ];
+  }
+  if (sp.status === "ativo") where.ativo = true;
+  if (sp.status === "inativo") where.ativo = false;
+
   const clientes = await prisma.cliente.findMany({
+    where,
     orderBy: { nome: "asc" },
     include: { _count: { select: { contratos: true, ordens: true } } },
   });
@@ -20,10 +40,28 @@ export default async function ClientesPage() {
         acao={<BotaoLink href="/clientes/novo">+ Novo cliente</BotaoLink>}
       />
 
+      <FilterBar
+        action="/clientes"
+        temFiltroAtivo={!!(sp.q || sp.status)}
+        campos={[
+          { tipo: "busca", name: "q", placeholder: "Buscar por nome, síndico ou CNPJ", valor: sp.q },
+          {
+            tipo: "select",
+            name: "status",
+            valor: sp.status,
+            placeholderOpcao: "Todos os status",
+            opcoes: [
+              { valor: "ativo", label: "Ativos" },
+              { valor: "inativo", label: "Inativos" },
+            ],
+          },
+        ]}
+      />
+
       {clientes.length === 0 ? (
         <EmptyState
-          titulo="Nenhum cliente cadastrado"
-          descricao="Cadastre os condomínios e prédios que sua empresa atende."
+          titulo="Nenhum cliente encontrado"
+          descricao="Ajuste os filtros ou cadastre um novo cliente."
           acao={<BotaoLink href="/clientes/novo">+ Novo cliente</BotaoLink>}
         />
       ) : (

@@ -1,14 +1,34 @@
 import Link from "next/link";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { exigirAdmin } from "@/lib/auth";
 import { PageHeader, BotaoLink, Badge, EmptyState } from "@/components/ui";
+import FilterBar from "@/components/filter-bar";
 import DeleteButton from "@/components/delete-button";
 import { formatarMoeda, TIPO_COLABORADOR } from "@/lib/format";
 import { excluirColaborador } from "./actions";
 
-export default async function ColaboradoresPage() {
+export default async function ColaboradoresPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; tipo?: string; status?: string }>;
+}) {
   await exigirAdmin();
+  const sp = await searchParams;
+
+  const where: Prisma.ColaboradorWhereInput = {};
+  if (sp.q) {
+    where.OR = [
+      { nome: { contains: sp.q } },
+      { funcao: { contains: sp.q } },
+    ];
+  }
+  if (sp.tipo) where.tipo = sp.tipo;
+  if (sp.status === "ativo") where.ativo = true;
+  if (sp.status === "inativo") where.ativo = false;
+
   const colaboradores = await prisma.colaborador.findMany({
+    where,
     orderBy: { nome: "asc" },
     include: { _count: { select: { ordens: true } } },
   });
@@ -23,10 +43,38 @@ export default async function ColaboradoresPage() {
         }
       />
 
+      <FilterBar
+        action="/colaboradores"
+        temFiltroAtivo={!!(sp.q || sp.tipo || sp.status)}
+        campos={[
+          { tipo: "busca", name: "q", placeholder: "Buscar por nome ou função", valor: sp.q },
+          {
+            tipo: "select",
+            name: "tipo",
+            valor: sp.tipo,
+            placeholderOpcao: "Todos os tipos",
+            opcoes: [
+              { valor: "CLT", label: "CLT" },
+              { valor: "PRESTADOR", label: "Prestador" },
+            ],
+          },
+          {
+            tipo: "select",
+            name: "status",
+            valor: sp.status,
+            placeholderOpcao: "Todos os status",
+            opcoes: [
+              { valor: "ativo", label: "Ativos" },
+              { valor: "inativo", label: "Inativos" },
+            ],
+          },
+        ]}
+      />
+
       {colaboradores.length === 0 ? (
         <EmptyState
-          titulo="Nenhum colaborador cadastrado"
-          descricao="Cadastre a equipe que executa as manutenções."
+          titulo="Nenhum colaborador encontrado"
+          descricao="Ajuste os filtros ou cadastre um novo colaborador."
           acao={
             <BotaoLink href="/colaboradores/novo">+ Novo colaborador</BotaoLink>
           }
