@@ -31,13 +31,19 @@ export default async function DashboardPage() {
   const [abertas, andamento, concluidas, contratosAtivos, ultimas] =
     await Promise.all([
       prisma.ordemServico.count({
-        where: { status: "ABERTA", ...soDoColaborador },
+        where: {
+          status: { in: ["CHAMADO", "OS_ABERTA"] },
+          ...soDoColaborador,
+        },
       }),
       prisma.ordemServico.count({
-        where: { status: "EM_ANDAMENTO", ...soDoColaborador },
+        where: {
+          status: { in: ["EM_EXECUCAO", "EXECUCAO_PARCIAL"] },
+          ...soDoColaborador,
+        },
       }),
       prisma.ordemServico.count({
-        where: { status: "CONCLUIDA", ...soDoColaborador },
+        where: { status: "EXECUCAO_TOTAL", ...soDoColaborador },
       }),
       sessao.role === "ADMIN"
         ? prisma.contrato.count({ where: { status: "ATIVO" } })
@@ -58,13 +64,9 @@ export default async function DashboardPage() {
       />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Stat titulo="OS abertas" valor={abertas} cor="text-blue-600" />
-        <Stat
-          titulo="Em andamento"
-          valor={andamento}
-          cor="text-amber-600"
-        />
-        <Stat titulo="Concluídas" valor={concluidas} cor="text-green-600" />
+        <Stat titulo="Chamados / abertas" valor={abertas} cor="text-blue-600" />
+        <Stat titulo="Em execução" valor={andamento} cor="text-amber-600" />
+        <Stat titulo="Execução total" valor={concluidas} cor="text-green-600" />
         {sessao.role === "ADMIN" && (
           <Stat
             titulo="Contratos ativos"

@@ -146,12 +146,13 @@ export default function OrdemForm({
           <select
             name="status"
             className="input"
-            defaultValue={ordem?.status ?? "ABERTA"}
+            defaultValue={ordem?.status ?? "CHAMADO"}
           >
-            <option value="ABERTA">Aberta</option>
-            <option value="AGENDADA">Agendada</option>
-            <option value="EM_ANDAMENTO">Em andamento</option>
-            <option value="CONCLUIDA">Concluída</option>
+            <option value="CHAMADO">Chamado</option>
+            <option value="OS_ABERTA">OS Aberta</option>
+            <option value="EM_EXECUCAO">Em Execução</option>
+            <option value="EXECUCAO_PARCIAL">Execução Parcial</option>
+            <option value="EXECUCAO_TOTAL">Execução Total</option>
             <option value="CANCELADA">Cancelada</option>
           </select>
         </Field>

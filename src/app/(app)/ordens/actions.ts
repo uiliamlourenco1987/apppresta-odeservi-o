@@ -6,7 +6,14 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { exigirSessao, exigirAdmin } from "@/lib/auth";
 
-const STATUS = ["ABERTA", "AGENDADA", "EM_ANDAMENTO", "CONCLUIDA", "CANCELADA"] as const;
+const STATUS = [
+  "CHAMADO",
+  "OS_ABERTA",
+  "EM_EXECUCAO",
+  "EXECUCAO_PARCIAL",
+  "EXECUCAO_TOTAL",
+  "CANCELADA",
+] as const;
 
 const schema = z.object({
   clienteId: z.string().min(1, "Selecione o cliente."),
@@ -71,7 +78,7 @@ export async function salvarOrdem(
     custo: d.custo,
     dataAgendada: d.dataAgendada ? new Date(d.dataAgendada) : null,
     dataConclusao:
-      d.status === "CONCLUIDA"
+      d.status === "EXECUCAO_TOTAL"
         ? d.dataConclusao
           ? new Date(d.dataConclusao)
           : new Date()
@@ -118,7 +125,9 @@ export async function mudarStatusOrdem(id: string, status: string) {
     data: {
       status,
       dataConclusao:
-        status === "CONCLUIDA" ? os.dataConclusao ?? new Date() : os.dataConclusao,
+        status === "EXECUCAO_TOTAL"
+          ? os.dataConclusao ?? new Date()
+          : os.dataConclusao,
     },
   });
   revalidatePath("/ordens");

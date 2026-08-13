@@ -88,7 +88,7 @@ model OrdemServico {
   titulo         String
   descricao      String?
   prioridade     String   @default("MEDIA") // BAIXA | MEDIA | ALTA | URGENTE
-  status         String   @default("ABERTA") // ABERTA | AGENDADA | EM_ANDAMENTO | CONCLUIDA | CANCELADA
+  status         String   @default("CHAMADO") // CHAMADO | OS_ABERTA | EM_EXECUCAO | EXECUCAO_PARCIAL | EXECUCAO_TOTAL | CANCELADA
   custo          Float    @default(0)
   dataAbertura   DateTime @default(now())
   dataAgendada   DateTime?

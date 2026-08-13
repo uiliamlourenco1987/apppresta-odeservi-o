@@ -21,14 +21,57 @@ export function paraInputDate(data: Date | string | null | undefined): string {
   return d.toISOString().slice(0, 10);
 }
 
-// Rótulos amigáveis para os valores de status/enum
-export const STATUS_OS: Record<string, { label: string; cor: string }> = {
-  ABERTA: { label: "Aberta", cor: "bg-blue-100 text-blue-800" },
-  AGENDADA: { label: "Agendada", cor: "bg-purple-100 text-purple-800" },
-  EM_ANDAMENTO: { label: "Em andamento", cor: "bg-amber-100 text-amber-800" },
-  CONCLUIDA: { label: "Concluída", cor: "bg-green-100 text-green-800" },
-  CANCELADA: { label: "Cancelada", cor: "bg-gray-200 text-gray-700" },
+// Fluxo de status das ordens de serviço (etapas do Kanban, em ordem)
+export const STATUS_OS: Record<
+  string,
+  { label: string; cor: string; corColuna: string; corBarra: string }
+> = {
+  CHAMADO: {
+    label: "Chamado",
+    cor: "bg-slate-100 text-slate-700",
+    corColuna: "bg-slate-50 border-slate-200",
+    corBarra: "bg-slate-400",
+  },
+  OS_ABERTA: {
+    label: "OS Aberta",
+    cor: "bg-blue-100 text-blue-800",
+    corColuna: "bg-blue-50 border-blue-200",
+    corBarra: "bg-blue-500",
+  },
+  EM_EXECUCAO: {
+    label: "Em Execução",
+    cor: "bg-amber-100 text-amber-800",
+    corColuna: "bg-amber-50 border-amber-200",
+    corBarra: "bg-amber-500",
+  },
+  EXECUCAO_PARCIAL: {
+    label: "Execução Parcial",
+    cor: "bg-orange-100 text-orange-800",
+    corColuna: "bg-orange-50 border-orange-200",
+    corBarra: "bg-orange-500",
+  },
+  EXECUCAO_TOTAL: {
+    label: "Execução Total",
+    cor: "bg-green-100 text-green-800",
+    corColuna: "bg-green-50 border-green-200",
+    corBarra: "bg-green-500",
+  },
+  CANCELADA: {
+    label: "Cancelada",
+    cor: "bg-gray-200 text-gray-700",
+    corColuna: "bg-gray-50 border-gray-200",
+    corBarra: "bg-gray-400",
+  },
 };
+
+// Colunas do quadro Kanban, na ordem do fluxo de trabalho
+export const KANBAN_COLUNAS = [
+  "CHAMADO",
+  "OS_ABERTA",
+  "EM_EXECUCAO",
+  "EXECUCAO_PARCIAL",
+  "EXECUCAO_TOTAL",
+] as const;
 
 export const PRIORIDADE_OS: Record<string, { label: string; cor: string }> = {
   BAIXA: { label: "Baixa", cor: "bg-gray-100 text-gray-700" },
