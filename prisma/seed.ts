@@ -207,6 +207,31 @@ async function main() {
     ],
   });
 
+  // Preventivas (agenda)
+  const hoje = new Date();
+  await prisma.preventiva.createMany({
+    data: [
+      {
+        clienteId: beta.id,
+        contratoId: null,
+        colaboradorId: joao.id,
+        titulo: "Inspeção dos elevadores",
+        categoria: "ELEVADOR",
+        frequencia: "TRIMESTRAL",
+        proximaData: new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() + 12),
+      },
+      {
+        clienteId: alpha.id,
+        contratoId: contratoAlpha.id,
+        colaboradorId: maria.id,
+        titulo: "Limpeza da caixa d'água",
+        categoria: "LIMPEZA",
+        frequencia: "SEMESTRAL",
+        proximaData: new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() - 3),
+      },
+    ],
+  });
+
   console.log("✅ Concluído!");
   console.log("   Admin:       admin@empresa.com / 123456");
   console.log("   Colaborador: joao@empresa.com / 123456");

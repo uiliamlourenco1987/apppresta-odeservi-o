@@ -143,6 +143,21 @@ export const ORCAMENTO_COLUNAS = [
   "REPROVADO",
 ] as const;
 
+export const FREQUENCIA: Record<string, { label: string; meses: number }> = {
+  MENSAL: { label: "Mensal", meses: 1 },
+  BIMESTRAL: { label: "Bimestral", meses: 2 },
+  TRIMESTRAL: { label: "Trimestral", meses: 3 },
+  SEMESTRAL: { label: "Semestral", meses: 6 },
+  ANUAL: { label: "Anual", meses: 12 },
+};
+
+export function proximaDataApos(data: Date, frequencia: string): Date {
+  const meses = FREQUENCIA[frequencia]?.meses ?? 1;
+  const d = new Date(data);
+  d.setMonth(d.getMonth() + meses);
+  return d;
+}
+
 export const STATUS_CONTRATO: Record<string, string> = {
   ATIVO: "Ativo",
   ENCERRADO: "Encerrado",

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { exigirSessao, exigirAdmin } from "@/lib/auth";
+import { notificarNovaOS } from "@/lib/notificacoes";
 
 const STATUS = [
   "CHAMADO",
@@ -25,6 +26,8 @@ const schema = z.object({
   descricao: z.string().trim().optional(),
   prioridade: z.enum(["BAIXA", "MEDIA", "ALTA", "URGENTE"]),
   status: z.enum(STATUS),
+  local: z.string().trim().optional(),
+  prazo: z.string().optional(),
   custo: z.coerce.number().min(0).default(0),
   dataAgendada: z.string().optional(),
   dataConclusao: z.string().optional(),
@@ -42,6 +45,8 @@ function ler(formData: FormData) {
     descricao: formData.get("descricao") || undefined,
     prioridade: formData.get("prioridade"),
     status: formData.get("status"),
+    local: formData.get("local") || undefined,
+    prazo: formData.get("prazo") || undefined,
     custo: formData.get("custo") || 0,
     dataAgendada: formData.get("dataAgendada") || undefined,
     dataConclusao: formData.get("dataConclusao") || undefined,
@@ -75,6 +80,8 @@ export async function salvarOrdem(
     descricao: d.descricao,
     prioridade: d.prioridade,
     status: d.status,
+    local: d.local,
+    prazo: d.prazo ? new Date(d.prazo) : null,
     custo: d.custo,
     dataAgendada: d.dataAgendada ? new Date(d.dataAgendada) : null,
     dataConclusao:
@@ -100,7 +107,11 @@ export async function salvarOrdem(
       _max: { numero: true },
     });
     const numero = (ultimo._max.numero ?? 0) + 1;
-    await prisma.ordemServico.create({ data: { ...data, numero } });
+    const nova = await prisma.ordemServico.create({
+      data: { ...data, numero },
+      include: { cliente: true, colaborador: true },
+    });
+    await notificarNovaOS(nova);
   }
 
   revalidatePath("/ordens");

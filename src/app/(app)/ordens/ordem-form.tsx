@@ -22,6 +22,8 @@ type Ordem = {
   descricao: string | null;
   prioridade: string;
   status: string;
+  local: string | null;
+  prazo: Date | null;
   custo: number;
   dataAgendada: Date | null;
   dataConclusao: Date | null;
@@ -186,6 +188,25 @@ export default function OrdemForm({
           </Field>
         </div>
       )}
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label="Local" hint="Bloco / andar / apartamento / área">
+          <input
+            name="local"
+            className="input"
+            defaultValue={ordem?.local ?? ""}
+            placeholder="Ex: Bloco B — 3º andar"
+          />
+        </Field>
+        <Field label="Prazo (SLA)" hint="Data limite para conclusão">
+          <input
+            name="prazo"
+            type="date"
+            className="input"
+            defaultValue={paraInputDate(ordem?.prazo)}
+          />
+        </Field>
+      </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Data agendada">

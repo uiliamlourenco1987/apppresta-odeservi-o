@@ -38,6 +38,7 @@ model Cliente {
   contratos    Contrato[]
   ordens       OrdemServico[]
   orcamentos   Orcamento[]
+  preventivas  Preventiva[]
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
 }
@@ -70,6 +71,7 @@ model Contrato {
   status         String   @default("ATIVO") // ATIVO | ENCERRADO | SUSPENSO
   ordens         OrdemServico[]
   recebimentos   Recebimento[]
+  preventivas    Preventiva[]
   criadoEm       DateTime @default(now())
   atualizadoEm   DateTime @updatedAt
 }
@@ -85,6 +87,7 @@ model Colaborador {
   ativo         Boolean  @default(true)
   ordens        OrdemServico[]
   pagamentos    PagamentoColaborador[]
+  preventivas   Preventiva[]
   usuario       User?
   criadoEm      DateTime @default(now())
   atualizadoEm  DateTime @updatedAt
@@ -105,6 +108,8 @@ model OrdemServico {
   descricao      String?
   prioridade     String   @default("MEDIA") // BAIXA | MEDIA | ALTA | URGENTE
   status         String   @default("CHAMADO") // CHAMADO | OS_ABERTA | EM_EXECUCAO | EXECUCAO_PARCIAL | EXECUCAO_TOTAL | CANCELADA
+  local          String?  // bloco / andar / apartamento / área
+  prazo          DateTime? // prazo limite (SLA)
   custo          Float    @default(0)
   dataAbertura   DateTime @default(now())
   dataAgendada   DateTime?
@@ -140,6 +145,36 @@ model PagamentoColaborador {
   status         String   @default("PENDENTE") // PENDENTE | PAGO
   criadoEm       DateTime @default(now())
   atualizadoEm   DateTime @updatedAt
+}
+
+model Preventiva {
+  id            String   @id @default(cuid())
+  cliente       Cliente  @relation(fields: [clienteId], references: [id])
+  clienteId     String
+  contrato      Contrato? @relation(fields: [contratoId], references: [id])
+  contratoId    String?
+  colaborador   Colaborador? @relation(fields: [colaboradorId], references: [id])
+  colaboradorId String?
+  titulo        String
+  categoria     String?
+  frequencia    String   // MENSAL | BIMESTRAL | TRIMESTRAL | SEMESTRAL | ANUAL
+  proximaData   DateTime
+  ativo         Boolean  @default(true)
+  observacoes   String?
+  criadoEm      DateTime @default(now())
+  atualizadoEm  DateTime @updatedAt
+}
+
+model Notificacao {
+  id           String   @id @default(cuid())
+  canal        String   // EMAIL | WHATSAPP
+  destinatario String
+  assunto      String
+  corpo        String
+  status       String   @default("PENDENTE") // PENDENTE | ENVIADO | SIMULADO | ERRO
+  erro         String?
+  criadoEm     DateTime @default(now())
+  enviadoEm    DateTime?
 }
 
 model Recebimento {

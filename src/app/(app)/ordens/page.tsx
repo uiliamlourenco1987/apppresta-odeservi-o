@@ -170,6 +170,10 @@ export default async function OrdensPage({
           {ordens.map((os) => {
             const st = STATUS_OS[os.status];
             const pr = PRIORIDADE_OS[os.prioridade];
+            const atrasada =
+              os.prazo &&
+              new Date(os.prazo) < new Date() &&
+              !["EXECUCAO_TOTAL", "CANCELADA"].includes(os.status);
             return (
               <Link
                 key={os.id}
@@ -185,10 +189,14 @@ export default async function OrdensPage({
                   </p>
                   <p className="truncate text-xs text-gray-500">
                     {os.cliente.nome}
+                    {os.local ? ` • ${os.local}` : ""}
                     {os.colaborador ? ` • ${os.colaborador.nome}` : " • não atribuída"}
                     {` • ${TIPO_OS[os.tipo]}`}
                   </p>
                 </div>
+                {atrasada && (
+                  <Badge className="bg-red-100 text-red-800">Atrasada</Badge>
+                )}
                 <Badge className={pr.cor}>{pr.label}</Badge>
                 <Badge className={st.cor}>{st.label}</Badge>
                 <span className="hidden w-20 text-right text-xs text-gray-400 sm:block">
